@@ -51,6 +51,7 @@ touch_t touch;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -66,7 +67,6 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -145,19 +145,32 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      if (HAL_GPIO_ReadPin(XPT2046_IRQ_GPIO_Port, XPT2046_IRQ_Pin) == GPIO_PIN_RESET)
+    if (HAL_GPIO_ReadPin(
+            XPT2046_IRQ_GPIO_Port,
+            XPT2046_IRQ_Pin
+        ) == GPIO_PIN_RESET)
+    {
+      touch = XPT2046_getTouch();
+
+      /*
+       * Mirror X coordinate because the touch panel
+       * coordinate system is opposite to the display.
+       */
+      touch.x = ST7789_WIDTH - 1 - touch.x;
+
+      if (touch.x < ST7789_WIDTH &&
+          touch.y < ST7789_HEIGHT)
       {
-          touch = XPT2046_getTouch();
-
-          touch.x = ST7789_WIDTH - 1 - touch.x;
-
-          if (touch.x < ST7789_WIDTH && touch.y < ST7789_HEIGHT)
-          {
-              ST7789_DrawFilledCircle(touch.x, touch.y, 6, GREEN);
-          }
+        ST7789_DrawFilledCircle(
+            touch.x,
+            touch.y,
+            6,
+            GREEN
+        );
       }
+    }
 
-      HAL_Delay(10);
+    HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
@@ -200,7 +213,10 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(
+          &RCC_ClkInitStruct,
+          FLASH_LATENCY_2
+      ) != HAL_OK)
   {
     Error_Handler();
   }
@@ -217,15 +233,18 @@ void SystemClock_Config(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
+
   __disable_irq();
 
   while (1)
   {
   }
+
   /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef USE_FULL_ASSERT
+
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -239,4 +258,5 @@ void assert_failed(uint8_t *file, uint32_t line)
 
   /* USER CODE END 6 */
 }
+
 #endif /* USE_FULL_ASSERT */
